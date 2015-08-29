@@ -182,6 +182,13 @@ class RedPitayaBoard(Device):
 
 	### Generator commands ----------------------------------------------------
 
+	@command(dtype_in=str,	# it was supposed to be an array of arguments, but since ATKPanel doesn't support that it had to change
+			 doc_in="Start signal generator. Arguments: channel, Vpp amplitude, frequency [Hz], type (sine, sqr, tri)")
+	def start_generator(self, argstr):
+		# TODO: Some sanity checking on arguments
+		command = "/opt/bin/generate %s" % argstr
+		self.conn.modules.os.popen(command).close()		# close pipe immediately to avoid dangling file descriptors
+
 	@command
 	def generator_ch1_stop(self):
 		self.RP.asga.output_zero = True
