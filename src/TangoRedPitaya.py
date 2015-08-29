@@ -14,6 +14,9 @@ from PyRedPitaya.pc import RedPitaya
 from rpyc import connect
 from rpyc.core.protocol import PingError	# btw. this doesn't work
 
+from urllib2 import urlopen
+import json
+
 
 class RedPitayaBoard(Device):
 	""" RedPitaya device server class """
@@ -37,6 +40,13 @@ class RedPitayaBoard(Device):
 		if self.reconnect_tries == self.reconnect:
 			self.status_message += "Not trying again."
 
+	def app_error(self, e):
+		""" Set status message informing about web application error """
+		self.set_state(DevState.STANDBY)
+		self.status_message = "Could not connect to webapp @ %s. Error message: %s\n" % (self.host, str(e))
+		self.status_message += "You need to have scope (Oscilloscope) webapp installed on your device.\n"
+		self.status_message += "Only input aquisition is affected, you can use all other functions anyway."
+
 	def board_connect(self):
 		""" Connect to the board """
 		try:
@@ -47,6 +57,16 @@ class RedPitayaBoard(Device):
 		else:
 			self.set_state(DevState.ON)
 			self.status_message = ""
+
+	def start_scope_app(self):
+		""" Start scope app for data aquisition """
+		try:
+			res = urlopen("http://%s/bazaar?start=scope" % self.host)
+			rstatus = json.loads(res.read())["status"]
+			if rstatus != "OK":
+				self.app_error("Device didn't start the app: %s" % rstatus)
+		except Exception as e:
+			self.app_error(e)
 
 
 	### Interface methods -----------------------------------------------------
@@ -59,6 +79,7 @@ class RedPitayaBoard(Device):
 
 		self.set_state(DevState.INIT)
 		self.board_connect()	# connect to the board
+		self.start_scope_app()	# start scope application
 		
 
 	def dev_status(self):
@@ -171,13 +192,13 @@ class RedPitayaBoard(Device):
 	### Oscilloscope commands -------------------------------------------------
 
 	# These two were implemented as attributes once, but it didn't work
-	@command(dtype_out=[float], doc_out="Input channel 1 data")
-	def scope_ch1_data(self):
-		return self.RP.scope.data_ch1
+	# @command(dtype_out=[float], doc_out="Input channel 1 data")
+	# def scope_ch1_data(self):
+	# 	return self.RP.scope.data_ch1
 
-	@command(dtype_out=[float], doc_out="Input channel 2 data")
-	def scope_ch2_data(self):
-		return self.RP.scope.data_ch2
+	# @command(dtype_out=[float], doc_out="Input channel 2 data")
+	# def scope_ch2_data(self):
+	# 	return self.RP.scope.data_ch2
 
 
 	### Generator commands ----------------------------------------------------
