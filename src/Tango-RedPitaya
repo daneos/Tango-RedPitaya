@@ -7,7 +7,7 @@
 ## See LICENSE for legal information
 
 
-from PyTango import AttrQuality, AttrWriteType, DevState
+from PyTango import AttrQuality, AttrWriteType, AttrDataFormat, DispLevel, DevState
 from PyTango.server import run
 from PyTango.server import Device, DeviceMeta
 from PyTango.server import attribute, command, device_property
@@ -96,6 +96,92 @@ class RedPitayaBoard(Device):
 			self.reconnect_tries = 0	# reset reconnect counter
 			return "OK"
 
+
+	### Scope attributes ------------------------------------------------------
+
+	@attribute(label="Time frame", dtype=[float],
+			   access=AttrWriteType.READ,
+			   unit="s", format="4.3f",
+			   doc="Current time frame for plotting scope channels")
+	def scope_times(self):
+		return self.RP.scope.times
+
+	@attribute(label="IN CH1 data", dtype=[float],
+			   access=AttrWriteType.READ,
+			   unit="V", format="4.3f",
+			   doc="Data from input channel 1")
+	def scope_ch1(self):
+		return self.RP.scope.data_ch1
+
+	@attribute(label="IN CH2 data", dtype=[float],
+			   access=AttrWriteType.READ,
+			   doc="Data from input channel 2")
+	def scope_ch2(self):
+		return self.RP.scope.data_ch2
+
+	@attribute(label="Scope frequency", dtype=float,
+			   access=AttrWriteType.READ_WRITE,
+			   unit="Hz", format="4.3f",
+			   fset="set_scope_freq",
+			   doc="Scope sampling frequency (I guess...)")
+	def scope_freq(self):
+		return self.RP.scope.frequency
+	def set_scope_freq(self, freq):
+		self.RP.scope.frequency = freq
+
+
+	### Voltages --------------------------------------------------------------
+
+	@attribute(label="PINT Voltage", dtype=float,
+			   access=AttrWriteType.READ,
+			   display_level=DispLevel.EXPERT,
+			   unit="V", format="4.3f",
+			   doc="PINT Voltage")
+	def pint_voltage(self):
+		return self.RP.ams.vccpint
+
+	@attribute(label="PAUX Voltage", dtype=float,
+			   access=AttrWriteType.READ,
+			   display_level=DispLevel.EXPERT,
+			   unit="V", format="4.3f",
+			   doc="PAUX Voltage")
+	def paux_voltage(self):
+		return self.RP.ams.vccpaux
+
+	@attribute(label="BRAM Voltage", dtype=float,
+			   access=AttrWriteType.READ,
+			   display_level=DispLevel.EXPERT,
+			   unit="V", format="4.3f",
+			   doc="BRAM Voltage")
+	def bram_voltage(self):
+		return self.RP.ams.vccbram
+
+	@attribute(label="INT Voltage", dtype=float,
+			   access=AttrWriteType.READ,
+			   display_level=DispLevel.EXPERT,
+			   unit="V", format="4.3f",
+			   doc="INT Voltage")
+	def int_voltage(self):
+		return self.RP.ams.vccint
+
+	@attribute(label="AUX Voltage", dtype=float,
+			   access=AttrWriteType.READ,
+			   display_level=DispLevel.EXPERT,
+			   unit="V", format="4.3f",
+			   doc="AUX Voltage")
+	def aux_voltage(self):
+		return self.RP.ams.vccaux
+
+	@attribute(label="DDR Voltage", dtype=float,
+			   access=AttrWriteType.READ,
+			   display_level=DispLevel.EXPERT,
+			   unit="V", format="4.3f",
+			   doc="DDR Voltage")
+	def ddr_voltage(self):
+		return self.RP.ams.vccddr
+
+
+### Run the server ------------------------------------------------------------
 
 if __name__ == "__main__":
 	run((RedPitayaBoard,))

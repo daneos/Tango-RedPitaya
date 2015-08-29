@@ -1,0 +1,8 @@
+This is a list of bugs known while developing.
+These marked by [X] are resolved.
+If you find any other bug, contact me at <daneos@daneos.com>
+
+
+[ ] Scope data not working
+[ ] scope_freq is getting labeled as DDR Voltage and appears only in expert view
+[ ] Device server segfaults when restarted from Astor
