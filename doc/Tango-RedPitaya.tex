@@ -20,15 +20,18 @@
 	\newpage
 	\section{Przygotowanie środowiska}
 	Po stronie komputera program wymaga zainstalowanego interpretera języka Python oraz pakietów PyTango oraz PyRedPitaya, które są dostępne przez PyPI.\\
-	Po stronie płytki RedPitaya musi być zainstalowany Python wraz z pakietem PyRedPitaya. Instrukcja instalacji znajduje się na stronie \emph{tu adres strony}.\\
-	Dostępna jest również wersja obrazu karty SD z preinstalownym środowiskiem PyRedPitaya: \emph{tu adres strony}.\\
+	Po stronie płytki RedPitaya musi być zainstalowany Python wraz z pakietem PyRedPitaya. Instrukcja instalacji znajduje się na stronie\\
+	\texttt{https://github.com/clade/RedPitaya/blob/master/python/README.rst}.\\
+	Dostępna jest również wersja obrazu karty SD z preinstalownym środowiskiem PyRedPitaya:\\
+	\texttt{http://clade.pierre.free.fr/python-on-red-pitaya/ecosystem-0.92-0-devbuild.zip}\\
 	Po zainstalowaniu odpowiedniego środowiska na karcie SD, należy wprowadzić modyfikacje dostępne wraz z programem w katalogu \texttt{src/rp\_board}.
 	Pliki z tego katalogu należy skopiować w odpowiednie miejsca karty SD:
 	\begin{itemize}
 		\item \texttt{rcS} $\to$ \texttt{etc/init.d/} -- uruchamia serwer RPyC podczas startu systemu
 		\item \texttt{service.py} $\to$ \texttt{usr/lib/python2.7/site-packages/PyRedPitaya/} -- udostępnia usługę zdalnego uruchamiania komend
 	\end{itemize}
-	Dostępna jest wersja obrazu karty SD z wprowadzonymi wszystkimi zmianami: \emph{tu adres strony}\\
+	Dostępna jest wersja obrazu karty SD z wprowadzonymi wszystkimi zmianami:\\
+	\emph{tu adres strony}\\
 	W przypadku korzystania z tego obrazu, wystarczy go zainstalować na karcie SD i uruchomić urządzenie.
 
 	\section{Konfiguracja}
