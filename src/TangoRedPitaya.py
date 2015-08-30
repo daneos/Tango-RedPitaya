@@ -33,7 +33,7 @@ class RedPitayaBoard(Device):
 
 	def connection_error(self, e):
 		""" Set status message informing about connection error and appropiate state """
-		self.set_state(DevState.FAULT)
+		self._state = DevState.FAULT
 		self.status_message = "Could not connect to the board @ %s:%d\nError message: %s\n" % (self.host, self.port, str(e))
 		self.status_message += "Reconnect attempt %d / %d\n" % (self.reconnect_tries, self.reconnect)
 		if self.reconnect_tries == self.reconnect:
@@ -41,14 +41,14 @@ class RedPitayaBoard(Device):
 
 	def app_error(self, e):
 		""" Set status message informing about web application error """
-		self.set_state(DevState.STANDBY)
+		self._state = DevState.STANDBY
 		self.status_message = "Could not connect to webapp @ %s. Error message: %s\n" % (self.host, str(e))
 		self.status_message += "You need to have scope (Oscilloscope) webapp installed on your device.\n"
 		self.status_message += "Only input acquisition is affected, you can use all other functions anyway."
 
 	def set_state_ok(self, state):
 		""" Sets state of normal operation and clears status message """
-		self.set_state(state)
+		self._state = state
 		self.status_message = ""
 
 	def board_connect(self):
@@ -113,6 +113,14 @@ class RedPitayaBoard(Device):
 		self.set_status(self._status)
 		return self._status
 
+	def dev_state(self):
+		""" Appropiate state handling """
+		# if generator or scope is active, state must be RUNNING no matter what
+		if self.generator_ch1_active() or self.generator_ch2_active() or self.scope_active():
+			self._state = DevState.RUNNING
+		self.set_state(self._state)
+		return self._state 
+
 
 	### Attributes ------------------------------------------------------------
 
@@ -162,6 +170,22 @@ class RedPitayaBoard(Device):
 	def set_scope_freq(self, freq):
 		self.RP.scope.frequency = freq
 
+	@attribute(label="Scope active", dtype=bool,
+			   access=AttrWriteType.READ,
+			   doc="Oscilloscope operation state")
+	def scope_active(self):
+		try:
+			res = urlopen("http://%s/data" % self.host)
+			rstatus = json.loads(res.read())["status"]
+		except Exception as e:
+			self.app_error(e)
+			return False
+		else:
+			if rstatus == "OK":
+				return True
+			else:
+				return False
+
 	# @attribute(label="Input channel 1 data", dtype=[[float,float]],
 	# 		   access=AttrWriteType.READ,
 	# 		   max_dim_y=3,		# sample, need to confront this with RP specs
@@ -183,6 +207,27 @@ class RedPitayaBoard(Device):
 	# 		self.app_error(e)
 	# 		return
 	# 	return data[0:4]
+
+
+	### Generator attributes --------------------------------------------------
+
+	@attribute(label="Generator CH1 active", dtype=bool,
+			   access=AttrWriteType.READ,
+			   # access=AttrWriteType.READ_WRITE,
+			   # fset="toggle_generator_ch1"
+			   doc="CH1 generator operation state")
+	def generator_ch1_active(self):
+		print "CH1: " + str(self.RP.asga.output_zero)
+		return not bool(self.RP.agsa.output_zero)
+	# def toggle_generator_ch1(self, v):
+	# 	self.RP.asga.output_zero = not v
+
+	@attribute(label="Generator CH2 active", dtype=bool,
+			   access=AttrWriteType.READ,
+			   doc="CH2 generator operation state")
+	def generator_ch2_active(self):
+		print "CH2: "+ str(self.RP.asgb.output_zero)
+		return not bool(self.RP.agsb.output_zero)
 
 
 	### Voltages --------------------------------------------------------------
