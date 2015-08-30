@@ -139,7 +139,7 @@ class RedPitayaBoard(Device):
 			self.set_state(DevState.RUNNING)
 			return DevState.RUNNING
 		self.set_state(self._state)
-		return self._state 
+		return self._state
 
 
 	### Attributes ------------------------------------------------------------
