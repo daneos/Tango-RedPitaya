@@ -160,18 +160,9 @@ class RedPitayaBoard(Device):
 
 	### Oscilloscope attributes -----------------------------------------------
 
-	@attribute(label="Scope frequency", dtype=float,
-			   access=AttrWriteType.READ_WRITE,
-			   unit="Hz", format="%4.3f",
-			   fset="set_scope_freq",
-			   doc="Scope sampling frequency (I guess...)")
-	def scope_freq(self):
-		return self.RP.scope.frequency
-	def set_scope_freq(self, freq):
-		self.RP.scope.frequency = freq
-
 	@attribute(label="Scope active", dtype=bool,
-			   access=AttrWriteType.READ,
+			   access=AttrWriteType.READ_WRITE,
+			   fset="set_scope_active",
 			   doc="Oscilloscope operation state")
 	def scope_active(self):
 		try:
@@ -185,42 +176,21 @@ class RedPitayaBoard(Device):
 				return True
 			else:
 				return False
-
-	# @attribute(label="Input channel 1 data", dtype=[[float,float]],
-	# 		   access=AttrWriteType.READ,
-	# 		   max_dim_y=3,		# sample, need to confront this with RP specs
-	# 		   max_dim_x=1,
-	# 		   doc="Data acqired from input channel 1")
-	# def scope_ch1_data(self):
-	# 	try:
-	# 		res = urlopen("http://%s/data" % self.host)
-	# 		data_full = json.loads(res.read())
-	# 		if data_full["status"] != "OK":
-	# 			if data_full["reason"] == "Application not loaded":
-	# 				self.start_scope_app()	# try to reload scope app
-	# 				return
-	# 			else:
-	# 				self.app_error("Could not fetch data from webapp: %s" % data_full["reason"])
-	# 				return
-	# 		data = data_full["datasets"]["g1"][0]["data"]
-	# 	except Exception as e:
-	# 		self.app_error(e)
-	# 		return
-	# 	return data[0:4]
+	def set_scope_active(self, v):
+		if v:
+			self.start_scope_app()
+		else:
+			self.stop_scope_app()
 
 
 	### Generator attributes --------------------------------------------------
 
 	@attribute(label="Generator CH1 active", dtype=bool,
 			   access=AttrWriteType.READ,
-			   # access=AttrWriteType.READ_WRITE,
-			   # fset="toggle_generator_ch1"
 			   doc="CH1 generator operation state")
 	def generator_ch1_active(self):
 		print "CH1: " + str(self.RP.asga.output_zero)
 		return not bool(self.RP.agsa.output_zero)
-	# def toggle_generator_ch1(self, v):
-	# 	self.RP.asga.output_zero = not v
 
 	@attribute(label="Generator CH2 active", dtype=bool,
 			   access=AttrWriteType.READ,
@@ -283,15 +253,6 @@ class RedPitayaBoard(Device):
 
 	### Oscilloscope commands -------------------------------------------------
 
-	# These two were implemented as attributes once, but it didn't work
-	# @command(dtype_out=[float], doc_out="Input channel 1 data")
-	# def scope_ch1_data(self):
-	# 	return self.RP.scope.data_ch1
-
-	# @command(dtype_out=[float], doc_out="Input channel 2 data")
-	# def scope_ch2_data(self):
-	# 	return self.RP.scope.data_ch2
-
 	# need to be a command, because as attribute it exceeds data size limit
 	@command(dtype_in="int", doc_in="Channel number",
 			 dtype_out=[float], doc_out="Scope input data")
@@ -307,10 +268,6 @@ class RedPitayaBoard(Device):
 			res = urlopen("http://%s/data" % self.host)
 			data_full = json.loads(res.read())
 			if data_full["status"] != "OK":
-				#if data_full["reason"] == "Application not loaded":
-				#	self.start_scope_app()	# try to reload scope app
-				#	return [0]
-				#else:
 				if data_full['status'] != "OK":
 					self.app_error("Could not fetch data from webapp: %s" % data_full["reason"])
 					return [0]
@@ -318,15 +275,7 @@ class RedPitayaBoard(Device):
 		except Exception as e:
 			self.app_error(e)
 			return
-		return [x[1] for x in data]		# remove timestamp part
-
-	@command
-	def scope_start(self):
-		self.start_scope_app()
-
-	@command
-	def scope_stop(self):
-		self.stop_scope_app()		
+		return [x[1] for x in data]		# remove timestamp part		
 
 
 	### Generator commands ----------------------------------------------------
