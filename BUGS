@@ -13,3 +13,5 @@ If you find any other bug, contact me at <daneos@daneos.com>
 [ ] Device state is flapping between UNKNOWN and FAULT while reconnecting
 [X] LED status is not showing up
 	int type causes errors, 'int' works (wtf?)
+[ ] Starting generator on one channel starts second channel too with previous parameters
+	Looks like it's a bug in RP device or "generate" application

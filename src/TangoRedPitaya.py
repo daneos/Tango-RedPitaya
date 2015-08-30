@@ -48,6 +48,14 @@ class RedPitayaBoard(Device):
 			self.set_state(DevState.ON)
 			self.status_message = ""
 
+	def start_generator(self, channel, opts):
+		""" Start signal generator decribed by opts on desired output channel.
+			Purpose of this function is to minimize argument count (and therefore mistake possibilities)
+			to the Tango accessible generator functions """
+		# TODO: Some sanity checking on arguments
+		command = "/opt/bin/generate %d %s" % (channel, opts)
+		self.conn.root.run_command(command)
+
 
 	### Interface methods -----------------------------------------------------
 
@@ -182,10 +190,20 @@ class RedPitayaBoard(Device):
 
 	### Generator commands ----------------------------------------------------
 
+	@command(dtype_in=str,	# it was supposed to be an array of arguments, but since ATKPanel doesn't support that it had to change
+			 doc_in="Start signal generator. Arguments: Vpp amplitude, frequency [Hz], type (sine, sqr, tri)")
+	def start_generator_ch1(self, argstr):
+		self.start_generator(1, argstr)
+
+	@command(dtype_in=str,	# it was supposed to be an array of arguments, but since ATKPanel doesn't support that it had to change
+			 doc_in="Start signal generator. Arguments: Vpp amplitude, frequency [Hz], type (sine, sqr, tri)")
+	def start_generator_ch2(self, argstr):
+		self.start_generator(2, argstr)
+
 	@command
-	def generator_ch1_stop(self):
+	def stop_generator_ch1(self):
 		self.RP.asga.output_zero = True
 
 	@command
-	def generator_ch2_stop(self):
+	def stop_generator_ch2(self):
 		self.RP.asgb.output_zero = True
