@@ -23,17 +23,17 @@
 	\section{Przygotowanie środowiska}
 	Po stronie komputera program wymaga zainstalowanego interpretera języka Python oraz pakietów PyTango oraz PyRedPitaya, które są dostępne przez PyPI.\\
 	Po stronie płytki RedPitaya musi być zainstalowany Python wraz z pakietem PyRedPitaya. Instrukcja instalacji znajduje się na stronie\\
-	\texttt{https://github.com/clade/RedPitaya/blob/master/python/README.rst}.\\
+	\texttt{\small{https://github.com/clade/RedPitaya/blob/master/python/README.rst}}.\\
 	Dostępna jest również wersja obrazu karty SD z preinstalownym środowiskiem PyRedPitaya:\\
-	\texttt{http://clade.pierre.free.fr/python-on-red-pitaya/ecosystem-0.92-0-devbuild.zip}\\
+	\texttt{\small{http://clade.pierre.free.fr/python-on-red-pitaya/ecosystem-0.92-0-devbuild.zip}}\\
 	Po zainstalowaniu odpowiedniego środowiska na karcie SD, należy wprowadzić modyfikacje dostępne wraz z programem w katalogu \texttt{src/rp\_board}.
 	Pliki z tego katalogu należy skopiować w odpowiednie miejsca karty SD:
 	\begin{itemize}
-		\item \texttt{rcS} $\to$ \texttt{etc/init.d/} -- uruchamia serwer RPyC podczas startu systemu
-		\item \texttt{service.py} $\to$ \texttt{usr/lib/python2.7/site-packages/PyRedPitaya/} -- udostępnia usługę zdalnego uruchamiania komend
+		\item \texttt{\small{rcS}} $\to$ \texttt{\small{etc/init.d/}} -- uruchamia serwer RPyC podczas startu systemu
+		\item \texttt{\small{service.py}} $\to$ \texttt{\small{usr/lib/python2.7/site-packages/PyRedPitaya/}} -- udostępnia usługę zdalnego uruchamiania komend
 	\end{itemize}
 	Dostępna jest wersja obrazu karty SD z wprowadzonymi wszystkimi zmianami:\\
-	\emph{tu adres strony}\\
+	\texttt{\small{http://repositories.daneos.com/solaris/download/ecosystem-0.92-0-devbuild-tango.zip}}\\
 	Po ustawieniu wszystkich wymaganych elementów, należy zainstalować aplikację scope (Oscilloscope) dostępną w interfejsie webowym RedPitaya.
 
 	\section{Konfiguracja}

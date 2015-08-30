@@ -15,6 +15,7 @@ from rpyc import connect
 
 from urllib2 import urlopen
 import json
+import re
 
 
 class RedPitayaBoard(Device):
@@ -70,8 +71,8 @@ class RedPitayaBoard(Device):
 				self.app_error("Device didn't start the app: %s" % data["reason"])
 		except Exception as e:
 			self.app_error(e)
-		# else:
-		# 	self.set_state_ok(DevState.RUNNING)
+		else:
+			self.set_state_ok(DevState.ON)
 
 	def stop_scope_app(self):
 		""" Stop scope app """
@@ -90,9 +91,24 @@ class RedPitayaBoard(Device):
 		""" Start signal generator decribed by opts on desired output channel.
 			Purpose of this function is to minimize argument count (and therefore mistake possibilities)
 			to the Tango accessible generator functions """
-		# TODO: Some sanity checking on arguments
-		command = "/opt/bin/generate %d %s" % (channel, opts)
-		self.conn.root.run_command(command)
+		# data sanity check
+		m = re.match(r"(\d+(\.\d+)?) (\d+(\.\d+)?) (.*)", opts)
+		if not m:
+			self.status_message = "Error: Invalid generator arguments format.\nShould be: Vpp Frequency Type"
+			return False
+		elif float(m.group(1)) > 2 or float(m.group(1)) < 0:
+			self.status_message = "Error: Vpp must be in range 0.0-2.0 V"
+			return False
+		elif float(m.group(3)) > 6.2e7 or float(m.group(3)) < 0:
+			self.status_message = "Error: Frequency must be in range 0.0-6.2E+7 Hz"
+			return False
+		elif not m.group(5) in ("sine", "sqr", "tri"):
+			self.status_message = "Error: Type must be either sine, sqr or tri"
+			return False
+		else:
+			command = "/opt/bin/generate %d %s" % (channel, opts)
+			self.conn.root.run_command(command)
+			return True
 
 	def scope_active_func(self):
 		""" Get scope status. It's here, because there is no way of reading the attribute inside the server.
@@ -128,16 +144,21 @@ class RedPitayaBoard(Device):
 
 	def dev_status(self):
 		""" Display appropiate status message """
-		self._status = "Device is in %s state.\n%s" % (self.get_state(), self.status_message)
+		if self._state == DevState.FAULT:
+			state = self._state
+		else:
+			state = self.get_state()
+		self._status = "Device is in %s state.\n%s" % (state, self.status_message)
 		self.set_status(self._status)
 		return self._status
 
 	def dev_state(self):
 		""" Appropiate state handling """
-		# if generator or scope is active, state must be RUNNING no matter what
-		if self.generator_active(1) or self.generator_active(2) or self.scope_active_func():
-			self.set_state(DevState.RUNNING)
-			return DevState.RUNNING
+		if self._state != DevState.FAULT:	# if state is FAULT set it immediately, to prevent timeouts
+			# if generator or scope is active, state must be RUNNING no matter what
+			if self.generator_active(1) or self.generator_active(2) or self.scope_active_func():
+				self.set_state(DevState.RUNNING)
+				return DevState.RUNNING
 		self.set_state(self._state)
 		return self._state
 
@@ -292,17 +313,17 @@ class RedPitayaBoard(Device):
 			 doc_in="Start signal generator. Arguments: Vpp amplitude, frequency [Hz], type (sine, sqr, tri)")
 	def start_generator_ch1(self, argstr):
 		ch2_active = self.generator_active(2) 
-		self.start_generator(1, argstr)
-		if not ch2_active:				# if the other channel wasn't active earlier
-			self.stop_generator(2)		# stop the other channel (required because of internal behavior)
+		if self.start_generator(1, argstr):
+			if not ch2_active:				# if the other channel wasn't active earlier
+				self.stop_generator(2)		# stop the other channel (required because of internal behavior)
 
 	@command(dtype_in=str,	# it was supposed to be an array of arguments, but since ATKPanel doesn't support that it had to change
 			 doc_in="Start signal generator. Arguments: Vpp amplitude, frequency [Hz], type (sine, sqr, tri)")
 	def start_generator_ch2(self, argstr):
 		ch1_active = self.generator_active(1)
-		self.start_generator(2, argstr)
-		if not ch1_active:			# if the other channel wasn't active earlier
-			self.stop_generator(1)		# stop the other channel (required because of internal behavior)
+		if self.start_generator(2, argstr):
+			if not ch1_active:			# if the other channel wasn't active earlier
+				self.stop_generator(1)		# stop the other channel (required because of internal behavior)
 
 	@command(dtype_in="int", doc_in="Channel number")
 	def stop_generator(self, ch):

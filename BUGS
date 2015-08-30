@@ -33,3 +33,6 @@ If you find any other bug, contact me at <daneos@daneos.com>
 	Unnoticed typo :)
 
 [ ] When disconnecting power, state goes UNKNOWN instead of trying to reconnect.
+
+[X] LEDs are shifted (LED1 behaves like LED2)
+	Looks like desired LED functionality
