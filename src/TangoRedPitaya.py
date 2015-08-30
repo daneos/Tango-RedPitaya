@@ -72,12 +72,12 @@ class RedPitayaBoard(Device):
 
 	@attribute(label="FPGA Temperature", dtype=float,
 			   access=AttrWriteType.READ,
-			   unit="*C", format="4.3f",
+			   unit="*C", format="%4.3f",
 			   doc="Temperature of the FPGA chip")
 	def temperature(self):
 		return self.RP.ams.temp
 
-	@attribute(label="LEDs state", dtype=int,
+	@attribute(label="LEDs state", dtype="int",		# plain int type causes errors
 			   access=AttrWriteType.READ_WRITE,
 			   fset="set_leds",
 			   min_value=0, max_value=255,
@@ -108,7 +108,7 @@ class RedPitayaBoard(Device):
 
 	@attribute(label="Scope frequency", dtype=float,
 			   access=AttrWriteType.READ_WRITE,
-			   unit="Hz", format="4.3f",
+			   unit="Hz", format="%4.3f",
 			   fset="set_scope_freq",
 			   doc="Scope sampling frequency (I guess...)")
 	def scope_freq(self):
@@ -122,7 +122,7 @@ class RedPitayaBoard(Device):
 	@attribute(label="PINT Voltage", dtype=float,
 			   access=AttrWriteType.READ,
 			   display_level=DispLevel.EXPERT,
-			   unit="V", format="4.3f",
+			   unit="V", format="%4.3f",
 			   doc="Processing system internal voltage")
 	def pint_voltage(self):
 		return self.RP.ams.vccpint
@@ -130,7 +130,7 @@ class RedPitayaBoard(Device):
 	@attribute(label="PAUX Voltage", dtype=float,
 			   access=AttrWriteType.READ,
 			   display_level=DispLevel.EXPERT,
-			   unit="V", format="4.3f",
+			   unit="V", format="%4.3f",
 			   doc="Processing system auxiliary voltage")
 	def paux_voltage(self):
 		return self.RP.ams.vccpaux
@@ -138,7 +138,7 @@ class RedPitayaBoard(Device):
 	@attribute(label="BRAM Voltage", dtype=float,
 			   access=AttrWriteType.READ,
 			   display_level=DispLevel.EXPERT,
-			   unit="V", format="4.3f",
+			   unit="V", format="%4.3f",
 			   doc="RAM blocks voltage")
 	def bram_voltage(self):
 		return self.RP.ams.vccbram
@@ -146,7 +146,7 @@ class RedPitayaBoard(Device):
 	@attribute(label="INT Voltage", dtype=float,
 			   access=AttrWriteType.READ,
 			   display_level=DispLevel.EXPERT,
-			   unit="V", format="4.3f",
+			   unit="V", format="%4.3f",
 			   doc="Programmable logic internal voltage")
 	def int_voltage(self):
 		return self.RP.ams.vccint
@@ -154,7 +154,7 @@ class RedPitayaBoard(Device):
 	@attribute(label="AUX Voltage", dtype=float,
 			   access=AttrWriteType.READ,
 			   display_level=DispLevel.EXPERT,
-			   unit="V", format="4.3f",
+			   unit="V", format="%4.3f",
 			   doc="Programmable logic internal voltage")
 	def aux_voltage(self):
 		return self.RP.ams.vccaux
@@ -162,7 +162,7 @@ class RedPitayaBoard(Device):
 	@attribute(label="DDR Voltage", dtype=float,
 			   access=AttrWriteType.READ,
 			   display_level=DispLevel.EXPERT,
-			   unit="V", format="4.3f",
+			   unit="V", format="%4.3f",
 			   doc="DDR I/O voltage")
 	def ddr_voltage(self):
 		return self.RP.ams.vccddr
