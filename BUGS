@@ -9,9 +9,11 @@ If you find any other bug, contact me at <daneos@daneos.com>
 	Converted to commands instead of attributes, but still, it's not the data I'm looking for
 [X] scope_freq is getting labeled as DDR Voltage and appears only in expert view
 	Apparently rebooting tangobox helps...
-[ ] Device server segfaults when restarted from Astor
+[X] Device server segfaults when restarted from Astor
+	Problem appears only when setting up a new device
 [ ] Device state is flapping between UNKNOWN and FAULT while reconnecting
 [X] LED status is not showing up
 	int type causes errors, 'int' works (wtf?)
 [ ] Starting generator on one channel starts second channel too with previous parameters
 	Looks like it's a bug in RP device or "generate" application
+[ ] Scope data exceeds size limit (even if sending only 4 datapoints)
