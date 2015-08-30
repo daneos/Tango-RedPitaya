@@ -28,4 +28,5 @@ If you find any other bug, contact me at <daneos@daneos.com>
 
 [ ] Scope data exceeds size limit (even if sending only 4 datapoints) when sent as attribute
 
-[ ] Can't get generator state attributes
+[X] Can't get generator state attributes
+	Unnoticed typo :)

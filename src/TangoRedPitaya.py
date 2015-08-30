@@ -94,18 +94,38 @@ class RedPitayaBoard(Device):
 		command = "/opt/bin/generate %d %s" % (channel, opts)
 		self.conn.root.run_command(command)
 
+	def scope_active_func(self):
+		""" Get scope status. It's here, because there is no way of reading the attribute inside the server.
+			(At least no documented way...) """
+		try:
+			res = urlopen("http://%s/data" % self.host)
+			rstatus = json.loads(res.read())["status"]
+		except Exception as e:
+			self.app_error(e)
+			return False
+		else:
+			if rstatus == "OK":
+				return True
+			else:
+				return False
+
+	def generator_ch1_active_func(self):
+		""" Get generator channel 1 status. The reason of this function existece is the same as scope_active_func """
+		return not self.RP.asga.output_zero
+
+	def generator_ch2_active_func(self):
+		""" Get generator channel 2 status. The reason of this function existece is the same as scope_active_func """
+		return not self.RP.asgb.output_zero
+
 
 	### Interface methods -----------------------------------------------------
 
 	def init_device(self):
 		""" Start device server """
 		Device.init_device(self)
-
 		self.reconnect_tries = 0
-
 		self.set_state_ok(DevState.INIT)
 		self.board_connect()	# connect to the board
-		#self.start_scope_app()	# start scope application
 
 	def dev_status(self):
 		""" Display appropiate status message """
@@ -116,7 +136,7 @@ class RedPitayaBoard(Device):
 	def dev_state(self):
 		""" Appropiate state handling """
 		# if generator or scope is active, state must be RUNNING no matter what
-		if self.generator_ch1_active() or self.generator_ch2_active() or self.scope_active():
+		if self.generator_ch1_active_func() or self.generator_ch2_active_func() or self.scope_active_func():
 			self._state = DevState.RUNNING
 		self.set_state(self._state)
 		return self._state 
@@ -165,17 +185,7 @@ class RedPitayaBoard(Device):
 			   fset="set_scope_active",
 			   doc="Oscilloscope operation state")
 	def scope_active(self):
-		try:
-			res = urlopen("http://%s/data" % self.host)
-			rstatus = json.loads(res.read())["status"]
-		except Exception as e:
-			self.app_error(e)
-			return False
-		else:
-			if rstatus == "OK":
-				return True
-			else:
-				return False
+		return self.scope_active_func()
 	def set_scope_active(self, v):
 		if v:
 			self.start_scope_app()
@@ -189,15 +199,13 @@ class RedPitayaBoard(Device):
 			   access=AttrWriteType.READ,
 			   doc="CH1 generator operation state")
 	def generator_ch1_active(self):
-		print "CH1: " + str(self.RP.asga.output_zero)
-		return not bool(self.RP.agsa.output_zero)
+		return self.generator_ch1_active_func()
 
 	@attribute(label="Generator CH2 active", dtype=bool,
 			   access=AttrWriteType.READ,
 			   doc="CH2 generator operation state")
 	def generator_ch2_active(self):
-		print "CH2: "+ str(self.RP.asgb.output_zero)
-		return not bool(self.RP.agsb.output_zero)
+		return self.generator_ch2_active_func()
 
 
 	### Voltages --------------------------------------------------------------
@@ -293,7 +301,9 @@ class RedPitayaBoard(Device):
 	@command
 	def stop_generator_ch1(self):
 		self.RP.asga.output_zero = True
+		self._state = DevState.ON
 
 	@command
 	def stop_generator_ch2(self):
 		self.RP.asgb.output_zero = True
+		self._state = DevState.ON
