@@ -32,7 +32,7 @@
 	\end{itemize}
 	Dostępna jest wersja obrazu karty SD z wprowadzonymi wszystkimi zmianami:\\
 	\emph{tu adres strony}\\
-	W przypadku korzystania z tego obrazu, wystarczy go zainstalować na karcie SD i uruchomić urządzenie.
+	Po ustawieniu wszystkich wymaganych elementów, należy zainstalować aplikację scope (Oscilloscope) dostępną w interfejsie webowym RedPitaya.
 
 	\section{Konfiguracja}
 	Urządzenie wykorzystuje trzy własności służące do konfiguracji: \texttt{host}, \texttt{port} i \texttt{reconnect}.\\
@@ -73,38 +73,84 @@
 		\item \textbf{PINT Voltage} -- napięcie wewnętrzne jednostki przetwarzania\\
 			  \texttt{pint\_voltage}\\
 			  Dostęp: odczyt\\
-			  Jednostka: V\\
+			  Jednostka: V
 		\item \textbf{PAUX Voltage} -- napięcie pomocnicze jednostki przetwarzania\\
 			  \texttt{paux\_voltage}\\
 			  Dostęp: odczyt\\
-			  Jednostka: V\\
+			  Jednostka: V
 		\item \textbf{BRAM Voltage} -- napięcie bloków pamięci RAM\\
 			  \texttt{bram\_voltage}\\
 			  Dostęp: odczyt\\
-			  Jednostka: V\\
+			  Jednostka: V
 		\item \textbf{INT Voltage} -- napięcie wewnętrzne jednostki logiki programowalnej\\
 			  \texttt{int\_voltage}\\
 			  Dostęp: odczyt\\
-			  Jednostka: V\\
+			  Jednostka: V
 		\item \textbf{AUX Voltage} -- napięcie pomocnicze jednoski logiki programowalnej\\
 			  \texttt{aux\_voltage}\\
 			  Dostęp: odczyt\\
-			  Jednostka: V\\
+			  Jednostka: V
 		\item \textbf{DDR Voltage} -- napięcie DDR I/O\\
 			  \texttt{ddr\_voltage}\\
 			  Dostęp: odczyt\\
-			  Jednostka: V\\
+			  Jednostka: V
 	\end{itemize}
 	\emph{tu screenshot}
 
 	\section{Komendy}
+	\emph{tu screenshot}\\
+	Standardowe komendy Tango:
+	\begin{itemize}
+		\item \textbf{\texttt{Init}} -- inicjalizuje urządzenie, rozpoczyna połączenie do płytki RedPitaya
+		\item \textbf{\texttt{State}} -- odczytuje stan urządzenia
+		\item \textbf{\texttt{Status}} -- odczytuje status urządzenia
+	\end{itemize}
+	Komendy urządzenia:
+	\begin{itemize}
+		\item \textbf{\texttt{scope\_data}} -- pobiera dane z oscyloskopu\\
+			  Wejście: int - numer kanału (1 lub 2)\\
+			  Wyjście: [float] - bufor próbek\\
+			  Jednostka: V\\
+			  \emph{tu screenshot}
+		\item \textbf{\texttt{start\_generator\_ch1}} -- uruchamia generator na kanale 1\\
+			  Wejście: str - parametry konfiguracyjne w formacie: \texttt{Vpp freq type}\\
+			  gdzie:
+			  \begin{itemize}
+			  	\item \texttt{Vpp} to aplituda sygnału w V (peak-to-peak),
+			  	\item \texttt{freq} to częstotliwość w Hz,
+			  	\item \texttt{type} to typ sygnału (sine, sqr lub tri)
+			  \end{itemize}
+		\item \textbf{\texttt{start\_generator\_ch2}} -- uruchamia generator na kanale 2\\
+			  Wejście: tak jak w \texttt{start\_generator\_ch1}
+		\item \textbf{\texttt{stop\_generator\_ch1}} -- zatrzymuje generator na kanale 1
+		\item \textbf{\texttt{stop\_generator\_ch2}} -- zatrzymuje generator na kanale 2
+	\end{itemize}
 
 	\section{Stan}
+	Tango-RedPitaya korzysta z 4 stanów: \texttt{RUNNING}, \texttt{ON}, \texttt{STANDBY} oraz \texttt{FAULT}.
+	Stanem może być również \texttt{UNKNOWN}, jednak nie jest to zamierzone działanie.\\
+	Stan \texttt{RUNNING} oznacza aktywność urządzenia, a konkretnie jego oscyloskopu lub generatora.\\
+	Stan \texttt{ON} oznacza, że urządzenie pracuje prawidłowo i nie napotkało błędów.\\
+	Stan \texttt{STANDBY} pojawia się wraz z odpowiednią wiadomością w statusie i jest wynikiem błędu połączenia z oscyloskopem.
+	W tym stanie można nadal używać generatora, jednak funkcje oscyloskopu są niedostępne. W takiej sytuacji należy zapoznać się z wiadomością w statusie i podjąć odpowiednie kroki.\\
+	Stan \texttt{FAULT} oznacza brak połączenia z serwerem RPyC na urządzeniu i najczęściej jest spowodowany tym, że urządzenie jest wyłączone, nie ma dostępu do sieci lub został skonfigurowany zły adres lub port. W takiej sytuacji w polu statusu również pojawia się odpowiednia informacja.\\
+	Stan \texttt{UNKNOWN} pojawia się w momencie wyłączenia zasilania płytki RedPitaya. Docelowo ma być wtedy prezentowany stan \texttt{FAULT}.
 
 	\section{Status}
+	W polu statusu pojawiają się informacje o problemach napokanych przez aplikację serwera. Wiadomościom w statusie towarzyszy zmiana stanu na \texttt{STANDBY} lub \texttt{FAULT}.
 
 	\section{Budowa wewnętrzna serwera}
+	Serwer komunikuje się z urządzeniem na dwa sposoby.\\
+	Do pobierania atrybutów (z wyjątkiem \texttt{scope\_active}) oraz komunikacji z generatorem używa biblioteki PyRedPitaya i dołączongo do niej serwera RPyC.
+	Biblioteka ta udostępnia rejestry procesora FPGA, w których znajdują się wartości odpowiednich parametrów.
+	Zmodyfikowana usługa RPyC (plik \texttt{service.py}) udostępnia możliwość zdalnego wykonywania komend na urządzeniu, z czego korzysta generator uruchamiając program \texttt{generate}.\\
+	Do komunikacji z oscyloskopem serwer używa interfejsu aplikacji webowej Oscilloscope. Jest to proste API, które serwuje dane z obu kanałów, przeliczone na wolty, za pomocą protokołu HTTP.
 
 	\section{Uwagi}
+	W czasie pobierania danych z oscyloskopu lub generacji sygnału nie należy korzystać z aplikacji webowych. Używają one tych samych rejestrów procesora co ten program i mogą wzajemnie się zakłócać. Po więcej informacji na ten temat odsyłam do wiki RedPitaya.\\
+	W obecnej postaci aplikacja pozwala na komunikację z urządzeniem RedPitaya oraz wykonywanie podstawowych akcji i pomiarów przez interfejs Tango.
+	Jednak daleko jej do wykorzystania pełnych możliwości tego sprzętu. Na ten stan rzeczy składa się brak dokładnej dokumentacji RedPitaya oraz mała ilość czasu przeznaczona na tak wymagające zadanie.\\
+	Lista bugów znajduje się w pliku \texttt{BUGS} w katalogu głównym repozytorium.\\
+	Program i jego dokumentacja są udostępniane na licencji GNU GPL v2.0, której pełny tekst znajduje się w pliku \texttt{LICENSE} w katalogu głównym repozytorium. 
 
 \end{document}
