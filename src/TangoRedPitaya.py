@@ -12,7 +12,6 @@ from PyTango.server import attribute, command, device_property
 
 from PyRedPitaya.pc import RedPitaya
 from rpyc import connect
-from rpyc.core.protocol import PingError	# btw. this doesn't work
 
 from urllib2 import urlopen
 import json
@@ -47,6 +46,11 @@ class RedPitayaBoard(Device):
 		self.status_message += "You need to have scope (Oscilloscope) webapp installed on your device.\n"
 		self.status_message += "Only input acquisition is affected, you can use all other functions anyway."
 
+	def set_state_ok(self, state):
+		""" Sets state of normal operation and clears status message """
+		self.set_state(state)
+		self.status_message = ""
+
 	def board_connect(self):
 		""" Connect to the board """
 		try:
@@ -55,18 +59,32 @@ class RedPitayaBoard(Device):
 		except Exception as e:
 			self.connection_error(e)
 		else:
-			self.set_state(DevState.ON)
-			self.status_message = ""
+			self.set_state_ok(DevState.ON)
 
 	def start_scope_app(self):
 		""" Start scope app for data acquisition """
 		try:
 			res = urlopen("http://%s/bazaar?start=scope" % self.host)
-			rstatus = json.loads(res.read())["status"]
-			if rstatus != "OK":
-				self.app_error("Device didn't start the app: %s" % rstatus)
+			data = json.loads(res.read())
+			if data["status"] != "OK":
+				self.app_error("Device didn't start the app: %s" % data["reason"])
 		except Exception as e:
 			self.app_error(e)
+		else:
+			self.set_state_ok(DevState.RUNNING)
+
+	def stop_scope_app(self):
+		""" Stop scope app """
+		try:
+			res = urlopen("http://%s/bazaar?stop=" % self.host)
+			data = json.loads(res.read())
+			if data["status"] != "OK":
+				self.app_error("Device didn't stop the app: %s" % data["reason"])
+				return
+		except Exception as e:
+			self.app_error(e)
+		else:
+			self.set_state_ok(DevState.ON)
 
 
 	### Interface methods -----------------------------------------------------
@@ -77,9 +95,9 @@ class RedPitayaBoard(Device):
 
 		self.reconnect_tries = 0
 
-		self.set_state(DevState.INIT)
+		self.set_state_ok(DevState.INIT)
 		self.board_connect()	# connect to the board
-		self.start_scope_app()	# start scope application
+		#self.start_scope_app()	# start scope application
 
 	def dev_status(self):
 		""" Display appropiate status message """
@@ -136,27 +154,27 @@ class RedPitayaBoard(Device):
 	def set_scope_freq(self, freq):
 		self.RP.scope.frequency = freq
 
-	@attribute(label="Input channel 1 data", dtype=[[float,float]],
-			   access=AttrWriteType.READ,
-			   max_dim_y=3,		# sample, need to confront this with RP specs
-			   max_dim_x=1,
-			   doc="Data acqired from input channel 1")
-	def scope_ch1_data(self):
-		try:
-			res = urlopen("http://%s/data" % self.host)
-			data_full = json.loads(res.read())
-			if data_full["status"] != "OK":
-				if data_full["reason"] == "Application not loaded":
-					self.start_scope_app()	# try to reload scope app
-					return
-				else:
-					self.app_error("Could not fetch data from webapp: %s" % data_full["reason"])
-					return
-			data = data_full["datasets"]["g1"][0]["data"]
-		except Exception as e:
-			self.app_error(e)
-			return
-		return data[0:4]
+	# @attribute(label="Input channel 1 data", dtype=[[float,float]],
+	# 		   access=AttrWriteType.READ,
+	# 		   max_dim_y=3,		# sample, need to confront this with RP specs
+	# 		   max_dim_x=1,
+	# 		   doc="Data acqired from input channel 1")
+	# def scope_ch1_data(self):
+	# 	try:
+	# 		res = urlopen("http://%s/data" % self.host)
+	# 		data_full = json.loads(res.read())
+	# 		if data_full["status"] != "OK":
+	# 			if data_full["reason"] == "Application not loaded":
+	# 				self.start_scope_app()	# try to reload scope app
+	# 				return
+	# 			else:
+	# 				self.app_error("Could not fetch data from webapp: %s" % data_full["reason"])
+	# 				return
+	# 		data = data_full["datasets"]["g1"][0]["data"]
+	# 	except Exception as e:
+	# 		self.app_error(e)
+	# 		return
+	# 	return data[0:4]
 
 
 	### Voltages --------------------------------------------------------------
@@ -220,6 +238,42 @@ class RedPitayaBoard(Device):
 	# @command(dtype_out=[float], doc_out="Input channel 2 data")
 	# def scope_ch2_data(self):
 	# 	return self.RP.scope.data_ch2
+
+	# need to be a command, because as attribute it exceeds data size limit
+	@command(dtype_in="int", doc_in="Channel number",
+			 dtype_out=[float], doc_out="Scope input data")
+	def scope_data(self, ch):
+		# data sanity check
+		if ch < 1 or ch > 2:
+			self.status_message = "Error: Scope channel should be 1 or 2"
+			return [0]
+		else:
+			self.status_message = ""
+
+		try:
+			res = urlopen("http://%s/data" % self.host)
+			data_full = json.loads(res.read())
+			if data_full["status"] != "OK":
+				#if data_full["reason"] == "Application not loaded":
+				#	self.start_scope_app()	# try to reload scope app
+				#	return [0]
+				#else:
+				if data_full['status'] != "OK":
+					self.app_error("Could not fetch data from webapp: %s" % data_full["reason"])
+					return [0]
+			data = data_full["datasets"]["g1"][ch-1]["data"]
+		except Exception as e:
+			self.app_error(e)
+			return
+		return [x[1] for x in data]		# remove timestamp part
+
+	@command
+	def scope_start(self):
+		self.start_scope_app()
+
+	@command
+	def scope_stop(self):
+		self.stop_scope_app()		
 
 
 	### Generator commands ----------------------------------------------------
