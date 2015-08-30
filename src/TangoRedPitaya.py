@@ -70,8 +70,8 @@ class RedPitayaBoard(Device):
 				self.app_error("Device didn't start the app: %s" % data["reason"])
 		except Exception as e:
 			self.app_error(e)
-		else:
-			self.set_state_ok(DevState.RUNNING)
+		# else:
+		# 	self.set_state_ok(DevState.RUNNING)
 
 	def stop_scope_app(self):
 		""" Stop scope app """
@@ -137,7 +137,8 @@ class RedPitayaBoard(Device):
 		""" Appropiate state handling """
 		# if generator or scope is active, state must be RUNNING no matter what
 		if self.generator_ch1_active_func() or self.generator_ch2_active_func() or self.scope_active_func():
-			self._state = DevState.RUNNING
+			self.set_state(DevState.RUNNING)
+			return DevState.RUNNING
 		self.set_state(self._state)
 		return self._state 
 
@@ -153,7 +154,7 @@ class RedPitayaBoard(Device):
 
 	@attribute(label="LEDs state", dtype="int",		# plain int type causes errors
 			   access=AttrWriteType.READ_WRITE,
-			   fset="set_leds",
+			   fset="set_leds", unit="",
 			   min_value=0, max_value=255,
 			   doc="State of the LED indicators")
 	def leds(self):
