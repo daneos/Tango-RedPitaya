@@ -109,13 +109,12 @@ class RedPitayaBoard(Device):
 			else:
 				return False
 
-	def generator_ch1_active_func(self):
-		""" Get generator channel 1 status. The reason of this function existece is the same as scope_active_func """
-		return not self.RP.asga.output_zero
-
-	def generator_ch2_active_func(self):
-		""" Get generator channel 2 status. The reason of this function existece is the same as scope_active_func """
-		return not self.RP.asgb.output_zero
+	def generator_active(self, ch):
+		""" Get generator channel status. The reason of this function existece is the same as scope_active_func """
+		if ch == 1:
+			return not self.RP.asga.output_zero
+		elif ch == 2:
+			return not self.RP.asgb.output_zero
 
 
 	### Interface methods -----------------------------------------------------
@@ -136,7 +135,7 @@ class RedPitayaBoard(Device):
 	def dev_state(self):
 		""" Appropiate state handling """
 		# if generator or scope is active, state must be RUNNING no matter what
-		if self.generator_ch1_active_func() or self.generator_ch2_active_func() or self.scope_active_func():
+		if self.generator_active(1) or self.generator_active(2) or self.scope_active_func():
 			self.set_state(DevState.RUNNING)
 			return DevState.RUNNING
 		self.set_state(self._state)
@@ -200,13 +199,13 @@ class RedPitayaBoard(Device):
 			   access=AttrWriteType.READ,
 			   doc="CH1 generator operation state")
 	def generator_ch1_active(self):
-		return self.generator_ch1_active_func()
+		return self.generator_active(1)
 
 	@attribute(label="Generator CH2 active", dtype=bool,
 			   access=AttrWriteType.READ,
 			   doc="CH2 generator operation state")
 	def generator_ch2_active(self):
-		return self.generator_ch2_active_func()
+		return self.generator_active(2)
 
 
 	### Voltages --------------------------------------------------------------
@@ -292,19 +291,26 @@ class RedPitayaBoard(Device):
 	@command(dtype_in=str,	# it was supposed to be an array of arguments, but since ATKPanel doesn't support that it had to change
 			 doc_in="Start signal generator. Arguments: Vpp amplitude, frequency [Hz], type (sine, sqr, tri)")
 	def start_generator_ch1(self, argstr):
+		ch2_active = self.generator_active(2) 
 		self.start_generator(1, argstr)
+		if not ch2_active:				# if the other channel wasn't active earlier
+			self.stop_generator(2)		# stop the other channel (required because of internal behavior)
 
 	@command(dtype_in=str,	# it was supposed to be an array of arguments, but since ATKPanel doesn't support that it had to change
 			 doc_in="Start signal generator. Arguments: Vpp amplitude, frequency [Hz], type (sine, sqr, tri)")
 	def start_generator_ch2(self, argstr):
+		ch1_active = self.generator_active(1)
 		self.start_generator(2, argstr)
+		if not ch1_active:			# if the other channel wasn't active earlier
+			self.stop_generator(1)		# stop the other channel (required because of internal behavior)
 
-	@command
-	def stop_generator_ch1(self):
-		self.RP.asga.output_zero = True
-		self._state = DevState.ON
-
-	@command
-	def stop_generator_ch2(self):
-		self.RP.asgb.output_zero = True
-		self._state = DevState.ON
+	@command(dtype_in="int", doc_in="Channel number")
+	def stop_generator(self, ch):
+		if ch == 1:
+			self.RP.asga.output_zero = True
+			self.set_state_ok(DevState.ON)
+		elif ch == 2:
+			self.RP.asgb.output_zero = True
+			self.set_state_ok(DevState.ON)
+		else:
+			self.status_message = "Error: Generator channel should be 1 or 2"

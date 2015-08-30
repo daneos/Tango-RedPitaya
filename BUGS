@@ -25,8 +25,11 @@ If you find any other bug, contact me at <daneos@daneos.com>
 [X] Starting generator on one channel starts second channel too with previous parameters
 	Looks like it's a bug in RP device or "generate" application
 	That's indeed a bug on the device&tools side. I can't do much about it.
+	Just turning off the other channel when turning on the desired.
 
 [ ] Scope data exceeds size limit (even if sending only 4 datapoints) when sent as attribute
 
 [X] Can't get generator state attributes
 	Unnoticed typo :)
+
+[ ] When disconnecting power, state goes UNKNOWN instead of trying to reconnect.
