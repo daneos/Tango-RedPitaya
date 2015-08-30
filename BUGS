@@ -11,3 +11,4 @@ If you find any other bug, contact me at <daneos@daneos.com>
 [ ] Device server segfaults when restarted from Astor
 [ ] Device state is flapping between UNKNOWN and FAULT while reconnecting
 [ ] LED status is not showing up
+[ ] Scope data exceeds size limit (even if sending only 4 datapoints)

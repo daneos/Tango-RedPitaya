@@ -45,7 +45,7 @@ class RedPitayaBoard(Device):
 		self.set_state(DevState.STANDBY)
 		self.status_message = "Could not connect to webapp @ %s. Error message: %s\n" % (self.host, str(e))
 		self.status_message += "You need to have scope (Oscilloscope) webapp installed on your device.\n"
-		self.status_message += "Only input aquisition is affected, you can use all other functions anyway."
+		self.status_message += "Only input acquisition is affected, you can use all other functions anyway."
 
 	def board_connect(self):
 		""" Connect to the board """
@@ -59,7 +59,7 @@ class RedPitayaBoard(Device):
 			self.status_message = ""
 
 	def start_scope_app(self):
-		""" Start scope app for data aquisition """
+		""" Start scope app for data acquisition """
 		try:
 			res = urlopen("http://%s/bazaar?start=scope" % self.host)
 			rstatus = json.loads(res.read())["status"]
@@ -80,7 +80,6 @@ class RedPitayaBoard(Device):
 		self.set_state(DevState.INIT)
 		self.board_connect()	# connect to the board
 		self.start_scope_app()	# start scope application
-		
 
 	def dev_status(self):
 		""" Display appropiate status message """
@@ -136,6 +135,28 @@ class RedPitayaBoard(Device):
 		return self.RP.scope.frequency
 	def set_scope_freq(self, freq):
 		self.RP.scope.frequency = freq
+
+	@attribute(label="Input channel 1 data", dtype=[[float,float]],
+			   access=AttrWriteType.READ,
+			   max_dim_y=3,		# sample, need to confront this with RP specs
+			   max_dim_x=1,
+			   doc="Data acqired from input channel 1")
+	def scope_ch1_data(self):
+		try:
+			res = urlopen("http://%s/data" % self.host)
+			data_full = json.loads(res.read())
+			if data_full["status"] != "OK":
+				if data_full["reason"] == "Application not loaded":
+					self.start_scope_app()	# try to reload scope app
+					return
+				else:
+					self.app_error("Could not fetch data from webapp: %s" % data_full["reason"])
+					return
+			data = data_full["datasets"]["g1"][0]["data"]
+		except Exception as e:
+			self.app_error(e)
+			return
+		return data[0:4]
 
 
 	### Voltages --------------------------------------------------------------
