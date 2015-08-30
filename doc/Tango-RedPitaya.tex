@@ -117,8 +117,8 @@
 			  Wejście: str - parametry konfiguracyjne w formacie: \texttt{Vpp freq type}\\
 			  gdzie:
 			  \begin{itemize}
-			  	\item \texttt{Vpp} to aplituda sygnału w V (peak-to-peak),
-			  	\item \texttt{freq} to częstotliwość w Hz,
+			  	\item \texttt{Vpp} to amplituda peak-to-peak sygnału (0.0 - 2.0 V),
+			  	\item \texttt{freq} to częstotliwość w Hz (0.0 - $6.2\cdot10^7$ Hz),
 			  	\item \texttt{type} to typ sygnału (sine, sqr lub tri)
 			  \end{itemize}
 		\item \textbf{\texttt{start\_generator\_ch2}} -- uruchamia generator na kanale 2\\
@@ -138,7 +138,7 @@
 	Stan \texttt{UNKNOWN} pojawia się w momencie wyłączenia zasilania płytki RedPitaya. Docelowo ma być wtedy prezentowany stan \texttt{FAULT}.
 
 	\section{Status}
-	W polu statusu pojawiają się informacje o problemach napokanych przez aplikację serwera. Wiadomościom w statusie towarzyszy zmiana stanu na \texttt{STANDBY} lub \texttt{FAULT}.\\
+	W polu statusu pojawiają się informacje o problemach napokanych przez aplikację serwera. Wiadomościom w statusie towarzyszy zazwyczaj (ale nie zawsze) zmiana stanu na \texttt{STANDBY} lub \texttt{FAULT}.\\
 
 	\section{Oscyloskop}
 	Aby uruchomić oscyloskop należy zmienić wartość atrybutu \texttt{scope\_active} na \texttt{True}.\\
@@ -166,7 +166,7 @@
 	\section{Uwagi}
 	W czasie pobierania danych z oscyloskopu lub generacji sygnału nie należy korzystać z aplikacji webowych. Używają one tych samych rejestrów procesora co ten program i mogą wzajemnie się zakłócać. Po więcej informacji na ten temat odsyłam do wiki RedPitaya.\\
 	W obecnej postaci aplikacja pozwala na komunikację z urządzeniem RedPitaya oraz wykonywanie podstawowych akcji i pomiarów przez interfejs Tango.
-	Jednak daleko jej do wykorzystania pełnych możliwości tego sprzętu. Na ten stan rzeczy składa się brak dokładnej dokumentacji RedPitaya oraz mała ilość czasu przeznaczona na tak wymagające zadanie.\\
+	Jednak daleko jej do wykorzystania pełnych możliwości tego sprzętu. Na ten stan rzeczy składa się brak dokładnej dokumentacji RedPitaya oraz mała ilość czasu przeznaczona na to zadanie.\\
 	Lista bugów znajduje się w pliku \texttt{BUGS} w katalogu głównym repozytorium.\\
 	Program i jego dokumentacja są udostępniane na licencji GNU GPL v2.0, której pełny tekst znajduje się w pliku \texttt{LICENSE} w katalogu głównym repozytorium. 
 
