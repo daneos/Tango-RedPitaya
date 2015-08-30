@@ -61,7 +61,7 @@
 			  Dostęp: odczyt
 		\item \textbf{Scope active} -- stan oscylockopu\\
 			  \texttt{scope\_active}\\
-			  Dostęp: odczyt
+			  Dostęp: odczyt/zapis
 		\item \textbf{Generator CH1 active} -- stan kanału 1 generatora\\
 			  \texttt{generator\_ch1\_active}\\
 			  Dostęp: odczyt
@@ -123,8 +123,8 @@
 			  \end{itemize}
 		\item \textbf{\texttt{start\_generator\_ch2}} -- uruchamia generator na kanale 2\\
 			  Wejście: tak jak w \texttt{start\_generator\_ch1}
-		\item \textbf{\texttt{stop\_generator\_ch1}} -- zatrzymuje generator na kanale 1
-		\item \textbf{\texttt{stop\_generator\_ch2}} -- zatrzymuje generator na kanale 2
+		\item \textbf{\texttt{stop\_generator}} -- zatrzymuje generator na wybranym kanale\\
+			  Wejście: int - numer kanału (1 lub 2)
 	\end{itemize}
 
 	\section{Stan}
@@ -145,7 +145,7 @@
 	Następnie można za pomocą komendy \texttt{scope\_data} pobrać aktualny odczyt (1024 wartości).\\
 	\screenshot{screenshots/scope_data.png}
 	W przypdadku podania nieprawidłowego numeru kanału zostanie zwrócona wartość \texttt{0.0}, a w polu statusu pojawi się odpowiednia informacja.\\
-	\screenshot{screenshots/invalid_channel.png}
+	\screenshot{screenshots/invalid_scope_channel.png}
 	W przypadku próby pobrania danych bez uprzedniego włączenia oscyloskopu, pojawi się informacja \texttt{Application not loaded}.\\
 	\screenshot{screenshots/scope_inactive.png}
 	Po zakończonej pracy należy wyłączyć oscyloskop, zmieniając atrybut \texttt{scope\_active} na \texttt{False}.
@@ -153,6 +153,8 @@
 	\section{Generator}
 	Aby uruchomić generator należy wykonać komendę \texttt{start\_generator\_ch1} lub \texttt{start\_generator\_ch2} w zależności od kanału na którym chcemy pracować.\\
 	Aby wyłączyć generator na podanym kanale należy wykonać komendę \texttt{stop\_generator}, podając jej jako parametr wybrany kanał.
+	Jeśli podany zostanie błędny numer kanału, w polu statusu zostanie wyświetlona odpowiednia informacja.\\
+	\screenshot{screenshots/invalid_generator_channel.png}
 
 	\section{Budowa wewnętrzna serwera}
 	Serwer komunikuje się z urządzeniem na dwa sposoby.\\
