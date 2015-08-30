@@ -1,0 +1,107 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage{graphicx}
+
+\title{Tango-RedPitaya\\\small{Tango device server for RedPitaya multi-instrument board}}
+\author{Grzegorz Kowalski\\\texttt{daneos@daneos.com}}
+\date{\today}
+
+\begin{document}
+	\maketitle
+	\vspace{4em}
+	
+	\begin{abstract}
+		\textbf{Tango-RedPitaya} jest serwerem urządzeń Tango sterującym płytką RedPitaya.\\
+		Serwer napisany jest w języku Python i był testowany na wersji 2.7.6 pod kontrolą systemu GNU\textbackslash Linux.\\
+		Celem tego projektu jest dostarczenie pełnej funkcjonalności urządzenia RedPitaya przez interfejs Tango.
+	\end{abstract}
+
+	\newpage
+	\section{Przygotowanie środowiska}
+	Po stronie komputera program wymaga zainstalowanego interpretera języka Python oraz pakietów PyTango oraz PyRedPitaya, które są dostępne przez PyPI.\\
+	Po stronie płytki RedPitaya musi być zainstalowany Python wraz z pakietem PyRedPitaya. Instrukcja instalacji znajduje się na stronie \emph{tu adres strony}.\\
+	Dostępna jest również wersja obrazu karty SD z preinstalownym środowiskiem PyRedPitaya: \emph{tu adres strony}.\\
+	Po zainstalowaniu odpowiedniego środowiska na karcie SD, należy wprowadzić modyfikacje dostępne wraz z programem w katalogu \texttt{src/rp\_board}.
+	Pliki z tego katalogu należy skopiować w odpowiednie miejsca karty SD:
+	\begin{itemize}
+		\item \texttt{rcS} $\to$ \texttt{etc/init.d/} -- uruchamia serwer RPyC podczas startu systemu
+		\item \texttt{service.py} $\to$ \texttt{usr/lib/python2.7/site-packages/PyRedPitaya/} -- udostępnia usługę zdalnego uruchamiania komend
+	\end{itemize}
+	Dostępna jest wersja obrazu karty SD z wprowadzonymi wszystkimi zmianami: \emph{tu adres strony}\\
+	W przypadku korzystania z tego obrazu, wystarczy go zainstalować na karcie SD i uruchomić urządzenie.
+
+	\section{Konfiguracja}
+	Urządzenie wykorzystuje trzy własności służące do konfiguracji: \texttt{host}, \texttt{port} i \texttt{reconnect}.\\
+	\texttt{Host} jest adresem płytki RedPitaya w sieci.\\
+	\emph{tu screenshot}\\
+	Domyślnym portem, na którym działa usługa jest \texttt{18861}. Można to zmienić w pliku \texttt{src/rp\_board/service.py}, pamiętając o skopiowaniu pliku na kartę SD po dokonanych modyfikacjach.\\
+	\emph{tu screenshot}\\
+	Parametr \texttt{reconnect} określa maksymalną liczbę prób połączenia w przypadku jego zerwania. Domyślną wartością jest \texttt{10}.\\
+	\emph{tu screenshot}
+
+	\section{Atrybuty}
+	Atrybuty dostępne w widoku OPERATOR:
+	\begin{itemize}
+		\item \textbf{FPGA Temperature} -- aktualna temperatura chipu FPGA\\
+			  \texttt{temperature}\\
+			  Dostęp: odczyt\\
+			  Jednostka: $^{\circ}$C
+		\item \textbf{LED state} -- stan wskaźników LED\\
+			  \texttt{leds}\\
+			  Dostęp: odczyt/zapis\\
+			  Zakres wartości: 0-255
+		\item \textbf{Ping check} -- stan połączenia z płytką\\
+			  \texttt{ping}\\
+			  Dostęp: odczyt
+		\item \textbf{Scope active} -- stan oscylockopu\\
+			  \texttt{scope\_active}\\
+			  Dostęp: odczyt
+		\item \textbf{Generator CH1 active} -- stan kanału 1 generatora\\
+			  \texttt{generator\_ch1\_active}\\
+			  Dostęp: odczyt
+		\item \textbf{Generator CH2 active} -- stan kanału 2 generatora\\
+			  \texttt{generator\_ch2\_active}\\
+			  Dostęp: odczyt
+	\end{itemize}
+	\emph{tu screenshot}\\
+	Atybuty dostępne w widoku EXPERT:
+	\begin{itemize}
+		\item \textbf{PINT Voltage} -- napięcie wewnętrzne jednostki przetwarzania\\
+			  \texttt{pint\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V\\
+		\item \textbf{PAUX Voltage} -- napięcie pomocnicze jednostki przetwarzania\\
+			  \texttt{paux\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V\\
+		\item \textbf{BRAM Voltage} -- napięcie bloków pamięci RAM\\
+			  \texttt{bram\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V\\
+		\item \textbf{INT Voltage} -- napięcie wewnętrzne jednostki logiki programowalnej\\
+			  \texttt{int\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V\\
+		\item \textbf{AUX Voltage} -- napięcie pomocnicze jednoski logiki programowalnej\\
+			  \texttt{aux\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V\\
+		\item \textbf{DDR Voltage} -- napięcie DDR I/O\\
+			  \texttt{ddr\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V\\
+	\end{itemize}
+	\emph{tu screenshot}
+
+	\section{Komendy}
+
+	\section{Stan}
+
+	\section{Status}
+
+	\section{Budowa wewnętrzna serwera}
+
+	\section{Uwagi}
+
+\end{document}

@@ -119,7 +119,7 @@ class RedPitayaBoard(Device):
 		if self.generator_ch1_active() or self.generator_ch2_active() or self.scope_active():
 			self._state = DevState.RUNNING
 		self.set_state(self._state)
-		return self._state 
+		return self._state
 
 
 	### Attributes ------------------------------------------------------------
