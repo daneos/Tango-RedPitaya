@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+## Tango-RedPitaya -- Tango device server for RedPitaya multi-istrument board
+## Solaris <synchrotron.pl>
+## Copyright (C) 2015 Grzegorz Kowalski <daneos@daneos.com>
+## See LICENSE for legal information
+
+
+from PyTango.server import run
+from TangoRedPitaya import RedPitayaBoard
+
+### Run the server ------------------------------------------------------------
+
+if __name__ == "__main__":
+	run((RedPitayaBoard,))

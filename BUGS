@@ -1,0 +1,39 @@
+This is a list of bugs known while developing.
+These marked by [X] are resolved.
+If you find any other bug, contact me at <daneos@daneos.com>
+
+
+[X] Formats don't work
+	Missing % sign
+
+[X] Scope data is not working
+	Converted to commands instead of attributes, but still, it's not the data I'm looking for
+	Using webapp interface, still I hope that command version is only temporary
+
+[X] scope_freq is getting labeled as DDR Voltage and appears only in expert view
+	Apparently rebooting tangobox helps...
+
+[ ] Device server segfaults when restarted from Astor
+	Problem appears only when setting up a new device and server is run from command line
+
+[ ] Device state is flapping between UNKNOWN and FAULT while reconnecting
+	Now it's just UNKNOWN...
+
+[X] LED status is not showing up
+	int type causes errors, 'int' works (wtf?)
+
+[X] Starting generator on one channel starts second channel too with previous parameters
+	Looks like it's a bug in RP device or "generate" application
+	That's indeed a bug on the device&tools side. I can't do much about it.
+	Just turning off the other channel when turning on the desired.
+
+[ ] Scope data exceeds size limit (even if sending only 4 datapoints) when sent as attribute
+
+[X] Can't get generator state attributes
+	Unnoticed typo :)
+
+[ ] When disconnecting power, state goes UNKNOWN instead of trying to reconnect.
+	It really reconnects, but doesn't show it
+
+[X] LEDs are shifted (LED1 behaves like LED2)
+	Looks like desired LED functionality

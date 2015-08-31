@@ -1,0 +1,173 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage{graphicx}
+
+\newcommand{\screenshot}[1]{\begin{minipage}[c]{\textwidth}\includegraphics[width=\textwidth]{#1}\end{minipage}}
+
+\title{Tango-RedPitaya\\\small{Tango device server for RedPitaya multi-instrument board}}
+\author{Grzegorz Kowalski\\\texttt{daneos@daneos.com}}
+\date{\today}
+
+\begin{document}
+	\maketitle
+	\vspace{4em}
+	
+	\begin{abstract}
+		\textbf{Tango-RedPitaya} jest serwerem urządzeń Tango sterującym płytką RedPitaya.\\
+		Serwer napisany jest w języku Python i był testowany na wersji 2.7.6 pod kontrolą systemu GNU\textbackslash Linux.\\
+		Celem tego projektu jest dostarczenie pełnej funkcjonalności urządzenia RedPitaya przez interfejs Tango.
+	\end{abstract}
+
+	\newpage
+	\section{Przygotowanie środowiska}
+	Po stronie komputera program wymaga zainstalowanego interpretera języka Python oraz pakietów PyTango oraz PyRedPitaya, które są dostępne przez PyPI.\\
+	Po stronie płytki RedPitaya musi być zainstalowany Python wraz z pakietem PyRedPitaya. Instrukcja instalacji znajduje się na stronie\\
+	\texttt{\small{https://github.com/clade/RedPitaya/blob/master/python/README.rst}}.\\
+	Dostępna jest również wersja obrazu karty SD z preinstalownym środowiskiem PyRedPitaya:\\
+	\texttt{\small{http://clade.pierre.free.fr/python-on-red-pitaya/ecosystem-0.92-0-devbuild.zip}}\\
+	Po zainstalowaniu odpowiedniego środowiska na karcie SD, należy wprowadzić modyfikacje dostępne wraz z programem w katalogu \texttt{src/rp\_board}.
+	Pliki z tego katalogu należy skopiować w odpowiednie miejsca karty SD:
+	\begin{itemize}
+		\item \texttt{\small{rcS}} $\to$ \texttt{\small{etc/init.d/}} -- uruchamia serwer RPyC podczas startu systemu
+		\item \texttt{\small{service.py}} $\to$ \texttt{\small{usr/lib/python2.7/site-packages/PyRedPitaya/}} -- udostępnia usługę zdalnego uruchamiania komend
+	\end{itemize}
+	Dostępna jest wersja obrazu karty SD z wprowadzonymi wszystkimi zmianami:\\
+	\texttt{\small{http://repositories.daneos.com/solaris/download/ecosystem-0.92-0-devbuild-tango.zip}}\\
+	Po ustawieniu wszystkich wymaganych elementów, należy zainstalować aplikację scope (Oscilloscope) dostępną w interfejsie webowym RedPitaya.
+
+	\section{Konfiguracja}
+	Urządzenie wykorzystuje trzy własności służące do konfiguracji: \texttt{host}, \texttt{port} i \texttt{reconnect}.\\
+	\texttt{Host} jest adresem płytki RedPitaya w sieci.\\
+	\screenshot{screenshots/host.png}
+	Domyślnym portem, na którym działa usługa jest \texttt{18861}. Można to zmienić w pliku \texttt{src/rp\_board/service.py}, pamiętając o skopiowaniu pliku na kartę SD po dokonanych modyfikacjach.\\
+	\screenshot{screenshots/port.png}
+	Parametr \texttt{reconnect} określa maksymalną liczbę prób połączenia w przypadku jego zerwania. Domyślną wartością jest \texttt{10}.\\
+	\screenshot{screenshots/reconnect.png}
+
+	\section{Atrybuty}
+	Atrybuty dostępne w widoku OPERATOR:
+	\begin{itemize}
+		\item \textbf{FPGA Temperature} -- aktualna temperatura chipu FPGA\\
+			  \texttt{temperature}\\
+			  Dostęp: odczyt\\
+			  Jednostka: $^{\circ}$C
+		\item \textbf{LED state} -- stan wskaźników LED\\
+			  \texttt{leds}\\
+			  Dostęp: odczyt/zapis\\
+			  Zakres wartości: 0-255
+		\item \textbf{Ping check} -- stan połączenia z płytką\\
+			  \texttt{ping}\\
+			  Dostęp: odczyt
+		\item \textbf{Scope active} -- stan oscylockopu\\
+			  \texttt{scope\_active}\\
+			  Dostęp: odczyt/zapis
+		\item \textbf{Generator CH1 active} -- stan kanału 1 generatora\\
+			  \texttt{generator\_ch1\_active}\\
+			  Dostęp: odczyt
+		\item \textbf{Generator CH2 active} -- stan kanału 2 generatora\\
+			  \texttt{generator\_ch2\_active}\\
+			  Dostęp: odczyt
+	\end{itemize}
+	\screenshot{screenshots/operator.png}
+	Atybuty dostępne w widoku EXPERT:
+	\begin{itemize}
+		\item \textbf{PINT Voltage} -- napięcie wewnętrzne jednostki przetwarzania\\
+			  \texttt{pint\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V
+		\item \textbf{PAUX Voltage} -- napięcie pomocnicze jednostki przetwarzania\\
+			  \texttt{paux\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V
+		\item \textbf{BRAM Voltage} -- napięcie bloków pamięci RAM\\
+			  \texttt{bram\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V
+		\item \textbf{INT Voltage} -- napięcie wewnętrzne jednostki logiki programowalnej\\
+			  \texttt{int\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V
+		\item \textbf{AUX Voltage} -- napięcie pomocnicze jednoski logiki programowalnej\\
+			  \texttt{aux\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V
+		\item \textbf{DDR Voltage} -- napięcie DDR I/O\\
+			  \texttt{ddr\_voltage}\\
+			  Dostęp: odczyt\\
+			  Jednostka: V
+	\end{itemize}
+	\screenshot{screenshots/expert.png}
+
+	\section{Komendy}
+	\screenshot{screenshots/commands.png}
+	Standardowe komendy Tango:
+	\begin{itemize}
+		\item \textbf{\texttt{Init}} -- inicjalizuje urządzenie, rozpoczyna połączenie do płytki RedPitaya
+		\item \textbf{\texttt{State}} -- odczytuje stan urządzenia
+		\item \textbf{\texttt{Status}} -- odczytuje status urządzenia
+	\end{itemize}
+	Komendy urządzenia:
+	\begin{itemize}
+		\item \textbf{\texttt{scope\_data}} -- pobiera dane z oscyloskopu\\
+			  Wejście: int - numer kanału (1 lub 2)\\
+			  Wyjście: [float] - bufor próbek\\
+			  Jednostka: V\\
+		\item \textbf{\texttt{start\_generator\_ch1}} -- uruchamia generator na kanale 1\\
+			  Wejście: str - parametry konfiguracyjne w formacie: \texttt{Vpp freq type}\\
+			  gdzie:
+			  \begin{itemize}
+			  	\item \texttt{Vpp} to amplituda peak-to-peak sygnału (0.0 - 2.0 V),
+			  	\item \texttt{freq} to częstotliwość w Hz (0.0 - $6.2\cdot10^7$ Hz),
+			  	\item \texttt{type} to typ sygnału (sine, sqr lub tri)
+			  \end{itemize}
+		\item \textbf{\texttt{start\_generator\_ch2}} -- uruchamia generator na kanale 2\\
+			  Wejście: tak jak w \texttt{start\_generator\_ch1}
+		\item \textbf{\texttt{stop\_generator}} -- zatrzymuje generator na wybranym kanale\\
+			  Wejście: int - numer kanału (1 lub 2)
+	\end{itemize}
+
+	\section{Stan}
+	Tango-RedPitaya korzysta z 4 stanów: \texttt{RUNNING}, \texttt{ON}, \texttt{STANDBY} oraz \texttt{FAULT}.
+	Stanem może być również \texttt{UNKNOWN}, jednak nie jest to zamierzone działanie.\\
+	Stan \texttt{RUNNING} oznacza aktywność urządzenia, a konkretnie jego oscyloskopu lub generatora.\\
+	Stan \texttt{ON} oznacza, że urządzenie pracuje prawidłowo i nie napotkało błędów.\\
+	Stan \texttt{STANDBY} pojawia się wraz z odpowiednią wiadomością w statusie i jest wynikiem błędu połączenia z oscyloskopem.
+	W tym stanie można nadal używać generatora, jednak funkcje oscyloskopu są niedostępne. W takiej sytuacji należy zapoznać się z wiadomością w statusie i podjąć odpowiednie kroki.\\
+	Stan \texttt{FAULT} oznacza brak połączenia z serwerem RPyC na urządzeniu i najczęściej jest spowodowany tym, że urządzenie jest wyłączone, nie ma dostępu do sieci lub został skonfigurowany zły adres lub port. W takiej sytuacji w polu statusu również pojawia się odpowiednia informacja.\\
+	Stan \texttt{UNKNOWN} pojawia się w momencie wyłączenia zasilania płytki RedPitaya. Docelowo ma być wtedy prezentowany stan \texttt{FAULT}.
+
+	\section{Status}
+	W polu statusu pojawiają się informacje o problemach napokanych przez aplikację serwera. Wiadomościom w statusie towarzyszy zazwyczaj (ale nie zawsze) zmiana stanu na \texttt{STANDBY} lub \texttt{FAULT}.\\
+
+	\section{Oscyloskop}
+	Aby uruchomić oscyloskop należy zmienić wartość atrybutu \texttt{scope\_active} na \texttt{True}.\\
+	Następnie można za pomocą komendy \texttt{scope\_data} pobrać aktualny odczyt (1024 wartości).\\
+	\screenshot{screenshots/scope_data.png}
+	W przypdadku podania nieprawidłowego numeru kanału zostanie zwrócona wartość \texttt{0.0}, a w polu statusu pojawi się odpowiednia informacja.\\
+	\screenshot{screenshots/invalid_scope_channel.png}
+	W przypadku próby pobrania danych bez uprzedniego włączenia oscyloskopu, pojawi się informacja \texttt{Application not loaded}.\\
+	\screenshot{screenshots/scope_inactive.png}
+	Po zakończonej pracy należy wyłączyć oscyloskop, zmieniając atrybut \texttt{scope\_active} na \texttt{False}.
+
+	\section{Generator}
+	Aby uruchomić generator należy wykonać komendę \texttt{start\_generator\_ch1} lub \texttt{start\_generator\_ch2} w zależności od kanału na którym chcemy pracować.\\
+	Aby wyłączyć generator na podanym kanale należy wykonać komendę \texttt{stop\_generator}, podając jej jako parametr wybrany kanał.
+	Jeśli podany zostanie błędny numer kanału, w polu statusu zostanie wyświetlona odpowiednia informacja.\\
+	\screenshot{screenshots/invalid_generator_channel.png}
+
+	\section{Budowa wewnętrzna serwera}
+	Serwer komunikuje się z urządzeniem na dwa sposoby.\\
+	Do pobierania atrybutów (z wyjątkiem \texttt{scope\_active}) oraz komunikacji z generatorem używa biblioteki PyRedPitaya i dołączongo do niej serwera RPyC.
+	Biblioteka ta udostępnia rejestry procesora FPGA, w których znajdują się wartości odpowiednich parametrów.
+	Zmodyfikowana usługa RPyC (plik \texttt{service.py}) udostępnia możliwość zdalnego wykonywania komend na urządzeniu, z czego korzysta generator uruchamiając program \texttt{generate}.\\
+	Do komunikacji z oscyloskopem serwer używa interfejsu aplikacji webowej Oscilloscope. Jest to proste API, które serwuje dane z obu kanałów, przeliczone na wolty, za pomocą protokołu HTTP.
+
+	\section{Uwagi}
+	W czasie pobierania danych z oscyloskopu lub generacji sygnału nie należy korzystać z aplikacji webowych. Używają one tych samych rejestrów procesora co ten program i mogą wzajemnie się zakłócać. Po więcej informacji na ten temat odsyłam do wiki RedPitaya.\\
+	W obecnej postaci aplikacja pozwala na komunikację z urządzeniem RedPitaya oraz wykonywanie podstawowych akcji i pomiarów przez interfejs Tango.
+	Jednak daleko jej do wykorzystania pełnych możliwości tego sprzętu. Na ten stan rzeczy składa się brak dokładnej dokumentacji RedPitaya oraz mała ilość czasu przeznaczona na to zadanie.\\
+	Lista bugów znajduje się w pliku \texttt{BUGS} w katalogu głównym repozytorium.\\
+	Program i jego dokumentacja są udostępniane na licencji GNU GPL v2.0, której pełny tekst znajduje się w pliku \texttt{LICENSE} w katalogu głównym repozytorium. 
+
+\end{document}
