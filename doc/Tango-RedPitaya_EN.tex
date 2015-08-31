@@ -1,0 +1,173 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+
+\newcommand{\screenshot}[1]{\begin{minipage}[c]{\textwidth}\includegraphics[width=\textwidth]{#1}\end{minipage}}
+
+\title{Tango-RedPitaya\\\small{Tango device server for RedPitaya multi-instrument board}}
+\author{Grzegorz Kowalski\\\texttt{daneos@daneos.com}}
+\date{\today}
+
+\begin{document}
+	\maketitle
+	\vspace{4em}
+	
+	\begin{abstract}
+		\textbf{Tango-RedPitaya} is a Tango device server that is meant to drive a RedPitaya board.\\
+		The server is written in Python programming language and was tested on 2.7.6 version running on GNU\textbackslash Linux operating system.\\
+		The goal of this project is to provide full RedPitaya functionality via Tango interface.
+	\end{abstract}
+
+	\newpage
+	\section{Environment preparation}
+	On the PC side the program requires a Python interpreter, PyTango and PyRedPitaya packages. These are available via PyPI.\\
+	On the board side there has to be a Python interpreter and PyRedPitaya package installed. Installation instructions are available at\\
+	\texttt{\small{https://github.com/clade/RedPitaya/blob/master/python/README.rst}}.\\
+	There is also a SD image available with PyRedPitaya environment installed:\\
+	\texttt{\small{http://clade.pierre.free.fr/python-on-red-pitaya/ecosystem-0.92-0-devbuild.zip}}\\
+	After installing the environment on the SD card, you need to apply modifications from \texttt{src/rp\_board} directory of the sources.
+	Files from this directory should be copied into appropriate places:
+	\begin{itemize}
+		\item \texttt{\small{rcS}} $\to$ \texttt{\small{etc/init.d/}} -- starts RPyC server on boot
+		\item \texttt{\small{service.py}} $\to$ \texttt{\small{usr/lib/python2.7/site-packages/PyRedPitaya/}} -- provides remote command execution
+	\end{itemize}
+	There is SD image available with all changes applied:\\
+	\texttt{\small{http://repositories.daneos.com/solaris/download/ecosystem-0.92-0-devbuild-tango.zip}}\\
+	Once finished preparing SD card and your PC, you should also install scope (Oscilloscope) application from RedPitaya's web interface.
+
+	\section{Configuration}
+	The device uses three configuration properties: \texttt{host}, \texttt{port} and \texttt{reconnect}.\\
+	\texttt{Host} is a RedPitaya board's network address.\\
+	\screenshot{screenshots/host.png}
+	Default port is \texttt{18861}. You can change it in \texttt{src/rp\_board/service.py} file, making sure you copied it to the SD card afterwards.\\
+	\screenshot{screenshots/port.png}
+	\texttt{Reconnect} property is a maximal reconnect attempt count in case of communication problem. Its default value is \texttt{10}.\\
+	\screenshot{screenshots/reconnect.png}
+
+	\section{Attributes}
+	Attributes available in OPERATOR view:
+	\begin{itemize}
+		\item \textbf{FPGA Temperature} -- current FPGA chip temperature\\
+			  \texttt{temperature}\\
+			  Access: read\\
+			  Unit: $^{\circ}$C
+		\item \textbf{LED state} -- LED indicators state\\
+			  \texttt{leds}\\
+			  Access: read/write\\
+			  Value range: 0-255
+		\item \textbf{Ping check} -- connection status\\
+			  \texttt{ping}\\
+			  Access: read
+		\item \textbf{Scope active} -- oscilloscope state\\
+			  \texttt{scope\_active}\\
+			  Access: read/write
+		\item \textbf{Generator CH1 active} -- generator channel 1 state\\
+			  \texttt{generator\_ch1\_active}\\
+			  Access: read
+		\item \textbf{Generator CH2 active} -- generator channel 2 state\\
+			  \texttt{generator\_ch2\_active}\\
+			  Access: read
+	\end{itemize}
+	\screenshot{screenshots/operator.png}
+	Attributes available in EXPERT view:
+	\begin{itemize}
+		\item \textbf{PINT Voltage} -- processing unit internal voltage\\
+			  \texttt{pint\_voltage}\\
+			  Access: read\\
+			  Unit: V
+		\item \textbf{PAUX Voltage} -- processing unit auxiliary voltage\\
+			  \texttt{paux\_voltage}\\
+			  Access: read\\
+			  Unit: V
+		\item \textbf{BRAM Voltage} -- block RAM voltage\\
+			  \texttt{bram\_voltage}\\
+			  Access: read\\
+			  Unit: V
+		\item \textbf{INT Voltage} -- programmable logic unit internal voltage\\
+			  \texttt{int\_voltage}\\
+			  Access: read\\
+			  Unit: V
+		\item \textbf{AUX Voltage} -- programmable logic unit auxiliary voltage\\
+			  \texttt{aux\_voltage}\\
+			  Access: read\\
+			  Unit: V
+		\item \textbf{DDR Voltage} -- DDR I/O voltage\\
+			  \texttt{ddr\_voltage}\\
+			  Access: read\\
+			  Unit: V
+	\end{itemize}
+	\screenshot{screenshots/expert.png}
+
+	\section{Commands}
+	\screenshot{screenshots/commands.png}
+	Standard Tango commands:
+	\begin{itemize}
+		\item \textbf{\texttt{Init}} -- initializes device, initiates connection to the RedPitaya board
+		\item \textbf{\texttt{State}} -- reads device state
+		\item \textbf{\texttt{Status}} -- reads device status
+	\end{itemize}
+	Device commands:
+	\begin{itemize}
+		\item \textbf{\texttt{scope\_data}} -- reads oscilloscope data\\
+			  Input: int - channel number (1 or 2)\\
+			  Output: [float] - samples buffer\\
+			  Unit: V\\
+		\item \textbf{\texttt{start\_generator\_ch1}} -- starts generator on channel 1\\
+			  Input: str - generator configuration conforming to pattern: \texttt{Vpp~freq~type}\\
+			  where:
+			  \begin{itemize}
+			  	\item \texttt{Vpp} is signal peak-to-peak amplitude (0.0 - 2.0 V),
+			  	\item \texttt{freq} is frequency in Hz (0.0 - $6.2\cdot10^7$ Hz),
+			  	\item \texttt{type} is signal type (sine, sqr or tri)
+			  \end{itemize}
+		\item \textbf{\texttt{start\_generator\_ch2}} -- starts generator on channel 2\\
+			  Input: same as \texttt{start\_generator\_ch1}
+		\item \textbf{\texttt{stop\_generator}} -- stops generator on desired channel\\
+			  Input: int - channel number (1 or 2)
+	\end{itemize}
+
+	\section{State}
+	Tango-RedPitaya uses 4 states: \texttt{RUNNING}, \texttt{ON}, \texttt{STANDBY} and \texttt{FAULT}.
+	State can be also \texttt{UNKNOWN}, but this is not intended.\\
+	\texttt{RUNNING} state indicates device activity, in particular oscilloscope or generator activity.\\
+	\texttt{ON} state indicates error free operation.\\
+	\texttt{STANDBY} state appears along with status information and is an effect of oscilloscope connection error.
+	You can however still use generator, but oscilloscope functions are not available. In this situation you should read the status message and accordingly resolve the problem.\\
+	\texttt{FAULT} state indicates connection error between server and RPyC service on the device. It's most often caused by the device being turned off, network error or incorrect host or port configuration. It this situation status field contains appropiate message.\\
+	\texttt{UNKNOWN} state appears when power is cut off the board. By design, \texttt{FAULT} state should be shown but this goal was not accomplished.
+
+	\section{Status}
+	Status field contains information on errors encountered by the server application. These messages are usually (but not always) accompanied by \texttt{STANDBY} or \texttt{FAULT} state.\\
+
+	\section{Oscilloscope}
+	To start the oscilloscope you need to change value of \texttt{scope\_active} attribute to \texttt{True}.\\
+	Next you can use \texttt{scope\_data} command to get current buffer (1024 values).\\
+	\screenshot{screenshots/scope_data.png}
+	When you request an invalid channel, return value will be \texttt{0.0}, and an error message will appear in the status field.\\
+	\screenshot{screenshots/invalid_scope_channel.png}
+	If you try to get data with oscilloscope inactive, you will see \texttt{Application not loaded} error.\\
+	\screenshot{screenshots/scope_inactive.png}
+	When you finish working with oscilloscope, change \texttt{scope\_active} attribute to \texttt{False} to turn off the scope.
+
+	\section{Generator}
+	To start the generator you need to run \texttt{start\_generator\_ch1} or \texttt{start\_generator\_ch2} command, depending on which channel you want to work on.\\
+	In order to turn off the generator, run \texttt{stop\_generator} command, passing desired channel number as an argument.
+	If you pass an invalid channel number an error message will appear in status field.\\
+	\screenshot{screenshots/invalid_generator_channel.png}
+
+	\section{Server internals}
+	The server utilizes two ways of communication with the device.\\
+	For attributes acqisition (except \texttt{scope\_active}) and generator functions it uses PyRedPitaya library and its RPyC server.
+	This library exposes FPGA registers, where attributes' values are stored.
+	Modified RPyC service (\texttt{service.py} file) provides remote command execution, which is used by generator using onboard \texttt{generate} program.\\
+	Oscilloscope functions use an Oscilloscope web application interface. It's a simple API that serves data from both channels, converted to volts, by the HTTP protocol.
+
+	\section{Comments}
+	During oscilloscope or generator operation you should not use web applications as they use the same processor registers and may interfere with the device server operation. More information is available on the RedPitaya wiki.\\
+	In its present form the application supports communication and basic actions and measurements execution on the RedPitaya board via the Tango interface.
+	However, it is far from using full capabilities of this equipment. This is mainly caused by the lack of accurate RedPitaya documentation and a small amount of time allocated to this task.\\
+	Bugs list is available in the \texttt{BUGS} file in the repository's root directory.\\
+	The program and its documentation is released under terms of GNU GPL v2.0 license, whose full text is available in the \texttt{LICENSE} file in the repository's root directory. 
+
+\end{document}
