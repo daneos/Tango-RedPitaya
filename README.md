@@ -7,7 +7,7 @@ Tango device server for RedPitaya multi-instrument board
 4. Configure your device in Tango  
   
 Documentation in Polish is available here: http://repositories.daneos.com/solaris/download/Tango-RedPitaya.pdf  
-(Or you can generate it yourself from a .tex file in doc/ directory.)  
-Documentation in English will be available soon.  
+Documentation in English is available here: http://repositories.daneos.com/solaris/download/Tango-RedPitaya_EN.pdf  
+(Or you can generate it yourself from .tex files in doc/ directory.)   
   
 Keep in mind that this first release is not complete.
